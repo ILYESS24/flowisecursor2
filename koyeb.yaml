@@ -1,0 +1,16 @@
+services:
+    - name: flowise-ai-assistant
+      type: web
+      image: flowiseai/flowise:latest
+      ports:
+          - port: 3000
+            protocol: http
+      healthcheck:
+          http:
+              path: /api/v1/health
+              port: 3000
+      env:
+          - name: NODE_ENV
+            value: production
+          - name: PORT
+            value: '3000'
