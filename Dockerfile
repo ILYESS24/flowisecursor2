@@ -1,38 +1,30 @@
-# Build local monorepo image
-# docker build --no-cache -t  flowise .
-
-# Run image
-# docker run -d -p 3000:3000 flowise
-
+# Dockerfile optimisé pour Render
 FROM node:20-alpine
-RUN apk add --update libc6-compat python3 make g++
-# needed for pdfjs-dist
-RUN apk add --no-cache build-base cairo-dev pango-dev
 
-# Install Chromium
-RUN apk add --no-cache chromium
-
-# Install curl for container-level health checks
-# Fixes: https://github.com/FlowiseAI/Flowise/issues/4126
-RUN apk add --no-cache curl
-
-#install PNPM globaly
+# Installer pnpm
 RUN npm install -g pnpm
 
-ENV PUPPETEER_SKIP_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Définir le répertoire de travail
+WORKDIR /app
 
-ENV NODE_OPTIONS=--max-old-space-size=8192
+# Copier les fichiers de configuration
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 
-WORKDIR /usr/src
+# Copier les packages
+COPY packages/ ./packages/
 
-# Copy app source
-COPY . .
+# Installer les dépendances
+RUN pnpm install --frozen-lockfile
 
-RUN pnpm install
-
+# Build l'application
 RUN pnpm build
 
+# Exposer le port
 EXPOSE 3000
 
-CMD [ "pnpm", "start" ]
+# Variables d'environnement
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Commande de démarrage
+CMD ["pnpm", "start"]
