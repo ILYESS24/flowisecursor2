@@ -1,0 +1,65 @@
+# Docker Compose for VPS Deployment
+version: '3.8'
+
+services:
+  flowise:
+    build: .
+    container_name: flowise-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://flowise:flowise_password@postgres:5432/flowise
+      - FLOWISE_USERNAME=admin
+      - FLOWISE_PASSWORD=admin123
+      - FLOWISE_SECRETKEY=your-secret-key-here
+      - CORS_ORIGINS=*
+      - ALLOWED_IFRAME_ORIGINS=*
+      - DISABLE_TELEMETRY=true
+      - LOG_LEVEL=info
+    volumes:
+      - flowise_data:/opt/flowise/.flowise
+      - flowise_uploads:/opt/flowise/uploads
+    depends_on:
+      - postgres
+    networks:
+      - flowise-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: flowise-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=flowise
+      - POSTGRES_USER=flowise
+      - POSTGRES_PASSWORD=flowise_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - flowise-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: flowise-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - flowise
+    networks:
+      - flowise-network
+
+volumes:
+  flowise_data:
+  flowise_uploads:
+  postgres_data:
+
+networks:
+  flowise-network:
+    driver: bridge

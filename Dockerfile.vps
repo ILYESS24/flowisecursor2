@@ -1,0 +1,63 @@
+# Multi-stage Dockerfile for VPS deployment
+FROM node:20-alpine AS base
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/components/package.json ./packages/components/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Build application
+RUN pnpm build
+
+# Production stage
+FROM node:20-alpine AS production
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S flowise -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy built application
+COPY --from=base --chown=flowise:nodejs /app/packages/server/dist ./packages/server/dist
+COPY --from=base --chown=flowise:nodejs /app/packages/server/bin ./packages/server/bin
+COPY --from=base --chown=flowise:nodejs /app/packages/server/marketplaces ./packages/server/marketplaces
+COPY --from=base --chown=flowise:nodejs /app/packages/components/dist ./packages/components/dist
+COPY --from=base --chown=flowise:nodejs /app/packages/ui/build ./packages/ui/build
+COPY --from=base --chown=flowise:nodejs /app/node_modules ./node_modules
+COPY --from=base --chown=flowise:nodejs /app/package.json ./
+COPY --from=base --chown=flowise:nodejs /app/pnpm-lock.yaml ./
+
+# Create necessary directories
+RUN mkdir -p /app/.flowise /app/uploads
+RUN chown -R flowise:nodejs /app/.flowise /app/uploads
+
+# Switch to app user
+USER flowise
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/v1/ping', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Start command
+CMD ["node", "packages/server/bin/render-start.js"]
