@@ -7,10 +7,39 @@ services:
             protocol: http
       healthcheck:
           http:
-              path: /api/v1/health
+              path: /
               port: 3000
       env:
           - name: NODE_ENV
             value: production
           - name: PORT
             value: '3000'
+          - name: DATABASE_PATH
+            value: '/app/database'
+          - name: APIKEY_PATH
+            value: '/app/api'
+          - name: SECRETKEY_PATH
+            value: '/app/secret'
+          - name: LOG_LEVEL
+            value: 'info'
+          - name: LOG_PATH
+            value: '/app/logs'
+      volumes:
+          - name: flowise-data
+            mount_path: /app/database
+          - name: flowise-api
+            mount_path: /app/api
+          - name: flowise-secret
+            mount_path: /app/secret
+          - name: flowise-logs
+            mount_path: /app/logs
+
+volumes:
+    - name: flowise-data
+      size: 1GB
+    - name: flowise-api
+      size: 100MB
+    - name: flowise-secret
+      size: 100MB
+    - name: flowise-logs
+      size: 100MB
