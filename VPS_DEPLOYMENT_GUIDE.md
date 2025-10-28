@@ -1,292 +1,203 @@
-# 🚀 Guide de Déploiement Flowise sur VPS
+# 🚀 GUIDE DE DÉPLOIEMENT VPS - FLOWISE AI ASSISTANT
 
-## 📋 Prérequis
+## 📋 PRÉREQUIS
 
-- VPS avec Ubuntu 20.04+ ou Debian 11+
-- Accès root ou sudo
-- Domaine configuré (optionnel)
-- Au moins 2GB RAM et 20GB SSD
+### Serveur VPS requis :
 
-## 🛠️ Méthodes de Déploiement
+- **OS** : Ubuntu 20.04+ ou Debian 11+
+- **RAM** : Minimum 2GB (recommandé 4GB+)
+- **CPU** : 2 vCPU minimum
+- **Stockage** : 20GB minimum
+- **Accès** : SSH avec sudo
 
-### Méthode 1: Script Automatique (Recommandé)
+### Informations nécessaires :
+
+- **Nom de domaine** ou IP publique du serveur
+- **Email** pour les certificats SSL
+- **Mot de passe** pour l'admin Flowise
+- **Mot de passe** pour la base de données
+
+## 🛠️ ÉTAPES DE DÉPLOIEMENT
+
+### 1. Connexion au VPS
 
 ```bash
-# 1. Télécharger le script de déploiement
-wget https://raw.githubusercontent.com/ILYESS24/flowisecursor/main/deploy-vps.sh
-
-# 2. Rendre le script exécutable
-chmod +x deploy-vps.sh
-
-# 3. Exécuter le déploiement
-sudo ./deploy-vps.sh
+ssh username@your-server-ip
 ```
 
-### Méthode 2: Docker Compose
+### 2. Téléchargement du projet
 
 ```bash
-# 1. Installer Docker et Docker Compose
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
-
-# 2. Cloner le repository
-git clone https://github.com/ILYESS24/flowisecursor.git
+# Cloner le projet avec vos modifications
+git clone https://github.com/VOTRE_USERNAME/flowisecursor.git
 cd flowisecursor
 
-# 3. Configurer les variables d'environnement
-cp render.env.example .env
-nano .env
-
-# 4. Démarrer avec Docker Compose
-docker-compose -f docker-compose-vps.yml up -d
+# Ou télécharger depuis votre machine locale
+scp -r Flowise-main username@your-server-ip:/home/username/
 ```
 
-### Méthode 3: Installation Manuelle
-
-```bash
-# 1. Mettre à jour le système
-sudo apt update && sudo apt upgrade -y
-
-# 2. Installer Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# 3. Installer pnpm
-sudo npm install -g pnpm
-
-# 4. Installer PostgreSQL
-sudo apt install -y postgresql postgresql-contrib
-
-# 5. Cloner et configurer Flowise
-git clone https://github.com/ILYESS24/flowisecursor.git
-cd flowisecursor
-pnpm install
-pnpm build
-
-# 6. Configurer la base de données
-sudo -u postgres psql -c "CREATE DATABASE flowise;"
-sudo -u postgres psql -c "CREATE USER flowise WITH PASSWORD 'your_password';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE flowise TO flowise;"
-```
-
-## 🔧 Configuration
-
-### Variables d'Environnement
-
-Créer un fichier `.env` dans le répertoire racine :
-
-```bash
-NODE_ENV=production
-PORT=3000
-DATABASE_URL=postgresql://flowise:password@localhost:5432/flowise
-FLOWISE_USERNAME=admin
-FLOWISE_PASSWORD=your_secure_password
-FLOWISE_SECRETKEY=your-secret-key-here
-APIKEY_PATH=/opt/flowise/.flowise
-CORS_ORIGINS=*
-ALLOWED_IFRAME_ORIGINS=*
-DISABLE_TELEMETRY=true
-LOG_LEVEL=info
-```
-
-### Configuration Nginx
-
-```bash
-# Copier la configuration Nginx
-sudo cp nginx-vps.conf /etc/nginx/sites-available/flowise
-
-# Activer le site
-sudo ln -s /etc/nginx/sites-available/flowise /etc/nginx/sites-enabled/
-
-# Tester la configuration
-sudo nginx -t
-
-# Recharger Nginx
-sudo systemctl reload nginx
-```
-
-## 🔒 Sécurité
-
-### Configuration du Firewall
-
-```bash
-# Activer UFW
-sudo ufw enable
-
-# Autoriser SSH
-sudo ufw allow ssh
-
-# Autoriser HTTP/HTTPS
-sudo ufw allow 'Nginx Full'
-
-# Vérifier le statut
-sudo ufw status
-```
-
-### Configuration SSL avec Let's Encrypt
-
-```bash
-# Installer Certbot
-sudo apt install -y certbot python3-certbot-nginx
-
-# Obtenir un certificat SSL
-sudo certbot --nginx -d your-domain.com
-
-# Vérifier le renouvellement automatique
-sudo certbot renew --dry-run
-```
-
-## 📊 Monitoring et Maintenance
-
-### Script de Maintenance
+### 3. Lancement du déploiement automatique
 
 ```bash
 # Rendre le script exécutable
-chmod +x vps-maintenance.sh
+chmod +x deploy-vps-complete.sh
 
-# Commandes disponibles
-./vps-maintenance.sh start      # Démarrer le service
-./vps-maintenance.sh stop       # Arrêter le service
-./vps-maintenance.sh restart    # Redémarrer le service
-./vps-maintenance.sh status     # Voir le statut
-./vps-maintenance.sh logs       # Voir les logs
-./vps-maintenance.sh update     # Mettre à jour
-./vps-maintenance.sh backup     # Sauvegarder
-./vps-maintenance.sh monitor    # Monitoring système
-./vps-maintenance.sh cleanup    # Nettoyer le système
+# Lancer le déploiement
+./deploy-vps-complete.sh
 ```
 
-### Surveillance des Logs
+### 4. Configuration interactive
+
+Le script va vous demander :
+
+- **Domaine** : `votre-domaine.com` ou `IP-DU-SERVEUR`
+- **Email** : `votre@email.com`
+- **Mot de passe admin** : `votre-mot-de-passe-securise`
+- **Mot de passe DB** : `mot-de-passe-db-securise`
+
+## 🎯 RÉSULTAT ATTENDU
+
+Après déploiement, vous aurez :
+
+### ✅ Services actifs :
+
+- **Flowise** : Port 3000 (interne)
+- **PostgreSQL** : Base de données
+- **Nginx** : Reverse proxy + SSL
+- **SSL** : Certificat Let's Encrypt automatique
+
+### ✅ Fonctionnalités :
+
+- **Logo "AI Assistant"** au lieu de "Flowise"
+- **HTTPS** automatique avec redirection
+- **Rate limiting** pour la sécurité
+- **Headers de sécurité** configurés
+- **Monitoring** et logs
+
+### ✅ Accès :
+
+- **URL** : `https://votre-domaine.com`
+- **Admin** : `admin` / `votre-mot-de-passe`
+- **API** : `https://votre-domaine.com/api/v1/`
+
+## 🛠️ MAINTENANCE
+
+### Commandes utiles :
 
 ```bash
-# Logs du service Flowise
-sudo journalctl -u flowise -f
+# Démarrer les services
+./vps-maintenance.sh start
 
-# Logs Nginx
-sudo tail -f /var/log/nginx/access.log
-sudo tail -f /var/log/nginx/error.log
+# Arrêter les services
+./vps-maintenance.sh stop
 
-# Logs PostgreSQL
-sudo tail -f /var/log/postgresql/postgresql-*.log
-```
+# Redémarrer les services
+./vps-maintenance.sh restart
 
-## 🔄 Mise à Jour
+# Voir les logs
+./vps-maintenance.sh logs
 
-### Mise à jour Automatique
-
-```bash
-# Utiliser le script de maintenance
+# Mettre à jour
 ./vps-maintenance.sh update
-```
 
-### Mise à jour Manuelle
-
-```bash
-# Arrêter le service
-sudo systemctl stop flowise
-
-# Sauvegarder
+# Sauvegarder la base de données
 ./vps-maintenance.sh backup
-
-# Mettre à jour le code
-cd /opt/flowise
-sudo -u flowise git pull origin main
-
-# Installer les nouvelles dépendances
-sudo -u flowise pnpm install
-
-# Reconstruire
-sudo -u flowise pnpm build
-
-# Redémarrer le service
-sudo systemctl start flowise
 ```
 
-## 🚨 Dépannage
-
-### Problèmes Courants
-
-1. **Service ne démarre pas**
-   ```bash
-   sudo systemctl status flowise
-   sudo journalctl -u flowise -n 50
-   ```
-
-2. **Erreur de base de données**
-   ```bash
-   sudo systemctl status postgresql
-   sudo -u postgres psql -c "\\l"
-   ```
-
-3. **Problème de permissions**
-   ```bash
-   sudo chown -R flowise:flowise /opt/flowise
-   ```
-
-4. **Port déjà utilisé**
-   ```bash
-   sudo netstat -tlnp | grep :3000
-   sudo lsof -i :3000
-   ```
-
-### Redémarrage Complet
+### Surveillance :
 
 ```bash
-# Arrêter tous les services
-sudo systemctl stop flowise nginx postgresql
+# Vérifier l'état des conteneurs
+docker-compose -f docker-compose-vps.yml ps
 
-# Redémarrer PostgreSQL
-sudo systemctl start postgresql
+# Voir les logs en temps réel
+docker-compose -f docker-compose-vps.yml logs -f
 
-# Redémarrer Flowise
-sudo systemctl start flowise
+# Vérifier l'espace disque
+df -h
 
-# Redémarrer Nginx
-sudo systemctl start nginx
-
-# Vérifier le statut
-sudo systemctl status flowise nginx postgresql
+# Vérifier la mémoire
+free -h
 ```
 
-## 📈 Optimisation des Performances
+## 🔧 DÉPANNAGE
 
-### Configuration PostgreSQL
+### Problèmes courants :
+
+#### 1. Services ne démarrent pas
 
 ```bash
-# Éditer la configuration PostgreSQL
-sudo nano /etc/postgresql/*/main/postgresql.conf
+# Vérifier les logs
+docker-compose -f docker-compose-vps.yml logs
 
-# Optimisations recommandées
-shared_buffers = 256MB
-effective_cache_size = 1GB
-work_mem = 4MB
-maintenance_work_mem = 64MB
+# Redémarrer
+docker-compose -f docker-compose-vps.yml restart
 ```
 
-### Configuration Nginx
+#### 2. SSL ne fonctionne pas
 
 ```bash
-# Optimisations dans nginx.conf
-worker_processes auto;
-worker_connections 1024;
+# Renouveler le certificat
+sudo certbot renew
 
-# Gzip compression
-gzip on;
-gzip_vary on;
-gzip_min_length 1024;
+# Vérifier la configuration Nginx
+sudo nginx -t
 ```
 
-## 🎯 Accès à l'Application
+#### 3. Problème de permissions
 
-- **URL** : `http://your-domain.com` ou `http://your-server-ip`
-- **Login par défaut** : `admin` / `admin123`
-- **API** : `http://your-domain.com/api/v1/`
+```bash
+# Corriger les permissions
+sudo chown -R $USER:$USER /opt/flowise-ai-assistant
+```
 
-## 📞 Support
+#### 4. Port déjà utilisé
 
-En cas de problème :
-1. Vérifier les logs : `./vps-maintenance.sh logs`
-2. Vérifier le statut : `./vps-maintenance.sh status`
-3. Redémarrer : `./vps-maintenance.sh restart`
-4. Consulter la documentation officielle Flowise
+```bash
+# Vérifier les ports utilisés
+sudo netstat -tlnp | grep :80
+sudo netstat -tlnp | grep :443
+```
+
+## 📊 MONITORING
+
+### Métriques importantes :
+
+- **CPU** : < 80%
+- **RAM** : < 80%
+- **Disque** : < 90%
+- **Connexions** : Surveiller les logs
+
+### Alertes recommandées :
+
+- Service down
+- Espace disque < 10%
+- RAM > 90%
+- Erreurs SSL
+
+## 🔒 SÉCURITÉ
+
+### Bonnes pratiques :
+
+- ✅ **Firewall** configuré (ports 22, 80, 443)
+- ✅ **SSL** automatique avec Let's Encrypt
+- ✅ **Rate limiting** activé
+- ✅ **Headers de sécurité** configurés
+- ✅ **Mots de passe** forts
+- ✅ **Mises à jour** régulières
+
+### Recommandations :
+
+- Changer le port SSH (22)
+- Utiliser des clés SSH
+- Configurer fail2ban
+- Surveiller les logs d'accès
+
+## 🎉 FÉLICITATIONS !
+
+Votre **AI Assistant** personnalisé est maintenant déployé et accessible via HTTPS avec toutes vos modifications !
+
+**URL d'accès** : `https://votre-domaine.com`
+**Logo personnalisé** : "AI Assistant" au lieu de "Flowise"
+**Sécurité** : SSL + Rate limiting + Headers de sécurité
+**Maintenance** : Scripts automatisés inclus

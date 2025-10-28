@@ -1,7 +1,5 @@
-import logo from '@/assets/images/flowise_white.svg'
-import logoDark from '@/assets/images/flowise_dark.svg'
-
 import { useSelector } from 'react-redux'
+import { Typography } from '@mui/material'
 
 // ==============================|| LOGO ||============================== //
 
@@ -10,11 +8,19 @@ const Logo = () => {
 
     return (
         <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'row', marginLeft: '10px' }}>
-            <img
-                style={{ objectFit: 'contain', height: 'auto', width: 150 }}
-                src={customization.isDarkMode ? logoDark : logo}
-                alt='Flowise'
-            />
+            <Typography
+                variant='h4'
+                sx={{
+                    fontWeight: 'bold',
+                    color: customization.isDarkMode ? '#ffffff' : '#000000',
+                    cursor: 'pointer',
+                    '&:hover': {
+                        opacity: 0.8
+                    }
+                }}
+            >
+                AI Assistant
+            </Typography>
         </div>
     )
 }

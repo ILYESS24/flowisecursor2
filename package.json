@@ -154,5 +154,9 @@
                 }
             ]
         ]
+    },
+    "dependencies": {
+        "clsx": "^1.2.1",
+        "react-redux": "^8.1.3"
     }
 }
